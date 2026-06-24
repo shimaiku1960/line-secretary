@@ -1,8 +1,13 @@
 import { Hono } from "hono";
+import { drizzle } from "drizzle-orm/d1";
+import { tasks } from "./db/schema";
+import { eq, and } from "drizzle-orm";
+
 
 type Bindings = CloudflareBindings & {
   CHANNEL_SECRET: string;
   CHANNEL_ACCESS_TOKEN: string;
+  DB: D1Database;
 };
 
 const verifySignature = async (
@@ -75,9 +80,12 @@ app.post("/webhook", async (c) => {
     events: {
       type: string;
       replyToken?: string;
+      source?: { userId?: string };
       message?: { type: string; text?: string };
     }[];
   };
+
+  const db = drizzle(c.env.DB);
 
   for (const event of body.events) {
     if (
@@ -86,11 +94,47 @@ app.post("/webhook", async (c) => {
       event.replyToken &&
       event.message.text
     ) {
-      await replyMessage(
-        c.env.CHANNEL_ACCESS_TOKEN,
-        event.replyToken,
-        event.message.text,
-      );
+      const text = event.message.text;
+
+      if (text.startsWith("追加")) {
+        const content = text.slice(2).trim();
+
+        await db.insert(tasks).values({
+          userId: event.source?.userId ?? "unknown",
+          content,
+        });
+
+        
+        await replyMessage(c.env.CHANNEL_ACCESS_TOKEN, event.replyToken, `追加したよ: ${content}`);
+      } else if (text === "リスト") {
+        const userId = event.source?.userId ?? "unknown";
+        const rows = await db
+          .select()
+          .from(tasks)
+          .where(and(eq(tasks.userId, userId), eq(tasks.done, 0)));
+
+        const list = rows.map((t) => `${t.id}: ${t.content}`).join("\n");
+        await replyMessage(
+          c.env.CHANNEL_ACCESS_TOKEN,
+          event.replyToken,
+          list || "タスクはないよ",
+        );
+      } else if (text.startsWith("完了")) {
+        const id = Number(text.slice(2).trim());
+        const userId = event.source?.userId ?? "unknown";
+        await db
+          .update(tasks)
+          .set({ done: 1 })
+          .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+
+        await replyMessage(
+          c.env.CHANNEL_ACCESS_TOKEN,
+          event.replyToken,
+          `完了にしたよ: ${id}`,
+        );
+      } else {
+        await replyMessage(c.env.CHANNEL_ACCESS_TOKEN, event.replyToken, text);
+      }
     }
   }
 

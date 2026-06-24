@@ -17,7 +17,16 @@
 	"upload_source_maps": true,
 	"compatibility_flags": [
 		"nodejs_compat"
-	]
+	],
+
+	"d1_databases": [
+		{
+		  "binding": "DB",
+		  "database_name": "line-secretary-db",
+		  "database_id": "b7b03247-cb52-4eb1-a011-9188768e3b9c"
+		}
+	  ]
+	
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
