@@ -7,10 +7,12 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.12.25"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "drizzle-kit": "^0.31.10",
     "wrangler": "^4.101.0"
   }
 }
