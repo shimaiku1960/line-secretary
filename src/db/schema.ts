@@ -6,6 +6,8 @@ export const tasks = sqliteTable("tasks", {
   userId: text("user_id").notNull(),
   content: text("content").notNull(),
   done: integer("done").notNull().default(0),
+  dueAt: integer("due_at"),
+  reminded: integer("reminded").notNull().default(0),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),
