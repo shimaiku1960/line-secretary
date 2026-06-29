@@ -25,8 +25,12 @@
 		  "database_name": "line-secretary-db",
 		  "database_id": "b7b03247-cb52-4eb1-a011-9188768e3b9c"
 		}
-	  ]
-	
+	  ],
+
+	"triggers": {
+		"crons": ["* * * * *"]
+	}
+
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
